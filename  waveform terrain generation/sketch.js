@@ -15,10 +15,33 @@ let h = 900;
 let flying = 0;
 let bitDepth = 1024;
 
-var mic, fft, trigger;
+var fft, trigger;
 var weight = 2;
 
-function setup() {
+// need to control + refresh to see changes in browser
+
+async function setup() {
+  let file = await fetch('eck2datanh.lc1')
+  let data = await file.text()
+  let result = [];
+
+  for (let line of data.trim().split('\n')) {
+    let s = line.trim().split(/[ ,]+/);
+
+    result.push(Math.abs(parseFloat(s[1]) * 4)); // single array of intensities
+
+    // result.push([parseFloat(s[0]), parseFloat(s[1]), parseFloat(s[2])]);
+  }
+
+  console.log(result);
+
+  const audioBuffer = new AudioBuffer({
+    length: result.length,
+    numberOfChannels: 1,
+    sampleRate: 3000,
+  });
+  audioBuffer.copyToChannel(new Float32Array(result), 0);
+
   createCanvas(1600, 1600, WEBGL);
   cols = w / scl;
   rows = h / scl;
@@ -26,11 +49,11 @@ function setup() {
   zValsInner = new Array(Math.floor(cols)).fill(1);
   zVals = new Array(Math.floor(rows)).fill(zValsInner);
 
-  mic = new p5.AudioIn();
-  mic.start();
-
   fft = new p5.FFT(0.8, bitDepth);
-  fft.setInput(mic);
+  fft.setInput(audioBuffer);
+
+  console.log(audioBuffer)
+  console.log(fft)
 }
 
 function draw() {
@@ -42,6 +65,8 @@ function draw() {
     yOffset += 0.2;
     zValsInner[x] = map(waveform[Math.floor(bitDepth / cols) * x], 0, 1, -60, 60);
   }
+
+  console.log(waveform) // this is 1024 of the same value. hmmmmmmmm
 
   // switching between these blocks switches direction of tracking
 

@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "lamejs": "^1.2.1"
+  },
+  "type": "module"
+}
